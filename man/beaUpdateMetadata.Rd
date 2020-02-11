@@ -22,4 +22,3 @@ beaUpdateMetadata(list('RegionalData', 'NIPA'), beaKey = 'yourAPIkey')
 }
 \keyword{metadata}
 \keyword{search}
-

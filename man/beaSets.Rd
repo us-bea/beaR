@@ -19,4 +19,3 @@ Returns a list of all datasets
 beaSets('yourAPIkey')
 }
 \keyword{metadata}
-

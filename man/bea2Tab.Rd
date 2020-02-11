@@ -29,4 +29,3 @@ userSpecList <- list('UserID' = 'yourKey' ,
 resp <- beaGet(userSpecList)
 BDT <- bea2Tab(resp)
 }
-

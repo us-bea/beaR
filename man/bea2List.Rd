@@ -27,4 +27,3 @@ userSpecList <- list('UserID' = 'yourKey' ,
 resp <- beaGet(userSpecList, asTable = FALSE)
 BL <- bea2List(resp)
 }
-

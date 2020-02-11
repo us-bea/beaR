@@ -1,0 +1,15 @@
+bea2List                Convert BEA API httr response payload to list
+bea2Tab                 Convert BEA API httr response or list payload
+                        to data.table
+beaGet                  Pass list of user specifications (including API
+                        key) to return data from BEA API.
+beaParamVals            Gives list of values possible for a given
+                        dataset's parameters
+beaParams               Gives list of parameters possible for a given
+                        dataset
+beaSearch               Search a selection of indexed BEA data table
+                        names, series labels, and series codes.
+beaSets                 Returns a list of all datasets
+beaUpdateMetadata       Download BEA metadata into library/data folder
+                        if needed
+beaViz                  Visualize BEA API response payload

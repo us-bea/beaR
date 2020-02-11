@@ -37,4 +37,3 @@ userSpecList <- list('UserID' = 'yourAPIKey' ,
 								'Year' = 'X')	
 BDT <- beaGet(userSpecList, asTable = TRUE)
 }
-

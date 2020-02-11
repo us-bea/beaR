@@ -17,7 +17,7 @@ beaParamVals <- function(beaKey, setName, paramName) {
 		'ParameterName'=paramName,
 		'ResultFormat' = 'json'
 	)
-	beaResponse <- beaR::beaGet(beaMetaSpecs, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
+	beaResponse <- bea.R::beaGet(beaMetaSpecs, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
 
 	return(beaResponse)
 }

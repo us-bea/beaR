@@ -48,7 +48,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 	# and, for now, we must transform back to LONG format for beaViz.  Change this later.
 	if(!is.null(attributes(beaPayload)$is.wide)){
 		if(attributes(beaPayload)$is.wide){
-			beaTab <- beaR::bea2Tab(beaPayload, asWide = FALSE)
+			beaTab <- bea.R::bea2Tab(beaPayload, asWide = FALSE)
 		} else {
 			beaTab <- beaPayload
 		}
@@ -59,7 +59,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				'response' %in% class(beaPayload)  ||
 				'list' %in% class(beaPayload)
 			),
-			beaR::bea2Tab(beaPayload, asWide = FALSE),
+			bea.R::bea2Tab(beaPayload, asWide = FALSE),
 			beaPayload
 			)
 	}
@@ -108,7 +108,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 	message('Note: If you are using RStudio, you will need to "Open in Browser" to view graphs/table.')
 	message('')
 	message('****You can safely ignore the following errors:****')
-	#beaTab <- beaR::bea2Tab(beaList)
+	#beaTab <- bea.R::bea2Tab(beaList)
 	
 		#Get info about the dataset and request
 		thisDatasetLoc <- grep(
@@ -212,7 +212,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 
 		thisTabID <- attributes(beaTab)$params$ParameterValue[thisTabIDLoc]
 		
-		nationalIndex <- beaR::beaSearch(' ', beaKey = thisUserID)[Account == 'National']
+		nationalIndex <- bea.R::beaSearch(' ', beaKey = thisUserID)[Account == 'National']
 		data.table::setkey(nationalIndex, key = DatasetName, TableID, LineNumber)
 
 #/IF NATIONAL
@@ -273,7 +273,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 		
 		
 		#Get a list of possible datasets
-		beaAllSets <- beaR::beaSets(thisUserID)$Dataset
+		beaAllSets <- bea.R::beaSets(thisUserID)$Dataset
 
 	#Create list of names for select box
 #		setList <- as.list(
@@ -423,7 +423,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 		#output$userSetParams <- shiny::reactive({
 		userSetParams <- shiny::reactive({
 			
-			theseParams <- beaR::beaParams(thisUserID, userSelectedSet())$Parameter
+			theseParams <- bea.R::beaParams(thisUserID, userSelectedSet())$Parameter
 			
 			#return(str(theseParams))
 		return(theseParams)
@@ -455,7 +455,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -520,7 +520,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -586,7 +586,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -652,7 +652,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -719,7 +719,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -785,7 +785,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -850,7 +850,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -914,7 +914,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -979,7 +979,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return()
 			} else {
 			
-				allParamSet <- beaR::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
+				allParamSet <- bea.R::beaParamVals(thisUserID, selectedSet, thisParamCode)$ParamValue
 				if(allValCheck){
 					allParamDesc <- as.list(
 						c(theseParams$AllValue[1], allParamSet[[1]])
@@ -1398,7 +1398,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 
 		output$vistab <-  googleVis::renderGvis({
 			preTab <- try(as.data.frame(
-				beaR::bea2Tab(beaTab, asWide = TRUE)[
+				bea.R::bea2Tab(beaTab, asWide = TRUE)[
 					order(
 						as.numeric(
 							LineNumber
@@ -1509,7 +1509,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				return(apiAttr);
 			})
 			
-			specStr <- paste0("beaData <- beaR::beaGet( \n list(\n 'UserID' = '", thisUserID, "', \n 'Method' = 'GetData', \n 'DatasetName' = '", selectedSet,"'",
+			specStr <- paste0("beaData <- bea.R::beaGet( \n list(\n 'UserID' = '", thisUserID, "', \n 'Method' = 'GetData', \n 'DatasetName' = '", selectedSet,"'",
 				ifelse(
 					!is.null(userDefPrms[1]),
 					ifelse(!is.na(userDefPrms[1]), 
@@ -1643,7 +1643,7 @@ beaViz <- function(beaPayload = NULL, beaKey = NULL) {
 				input$apiParam9,
 				'.csv', sep='') },
 			content = function(file) {
-				utils::write.csv(beaR::bea2Tab(beaTab, asWide = TRUE)[
+				utils::write.csv(bea.R::bea2Tab(beaTab, asWide = TRUE)[
 						order(
 							as.numeric(
 								LineNumber

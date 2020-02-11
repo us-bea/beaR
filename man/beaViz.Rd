@@ -30,4 +30,3 @@ userSpecList <- list('UserID' = 'yourKey' ,
 								'TableID' = '68',
 								'Year' = 'X')
 }
-

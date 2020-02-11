@@ -20,7 +20,7 @@
 bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 	requireNamespace('data.table', quietly = TRUE)
 	if('response' %in% class(beaPayload)){
-		beaResponse <- beaR::bea2List(beaPayload)
+		beaResponse <- bea.R::bea2List(beaPayload)
 	} else {
 		beaResponse <- beaPayload
 	}
@@ -34,10 +34,18 @@ bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 
 	DataValue <- NULL
 	TimePeriod <- NULL
+	Year <- NULL
 	LineNumber <- NULL
 	beaResults <- data.table::as.data.table(beaResponse)
 	attributes(beaResults)$is.wide <- FALSE
-
+  
+  #Some datasets use "Year" while others use "TimePeriod"; you must remove both during reshape to wide
+  TimeIntersect <- intersect(attributes(beaResponse)$detail$Dimensions$Name, c('TimePeriod', 'Year'))
+	if(length(TimeIntersect) > 1){
+		TimeColName <- 'TimePeriod'
+	} else {
+		TimeColName <- TimeIntersect
+	}
 	#Convert wide matrix to long 
 	#(less common as data comes as long, but needed for beaViz)
 	if('data.frame' %in% class(beaPayload)){
@@ -66,12 +74,16 @@ bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 				beaTab, 
 				varying = dateColNames, 
 				v.names = 'DataValue', 
-				timevar = 'TimePeriod', 
+				timevar = TimeColName, 
 				times = dateVector, 
 				direction = 'long')[, 
 					id:=NULL
 				]
 			)
+			
+			if(length(TimeIntersect) > 1){
+				suppressWarnings(beaResults[, Year := substr(TimePeriod, 1, 4)])
+			}
 			
 			attributes(beaResults)$is.wide <- FALSE
 		}
@@ -82,9 +94,9 @@ bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 			!is.null(attributes(beaResponse)$detail)
 		){
 		beaTab <- beaResults
-		data.table::setkey(beaTab, key = TimePeriod)
+		eval(parse(text = paste0('data.table::setkey(beaTab, key = ', TimeColName, ')')))
 		noDV <- attributes(beaTab)$names != 'DataValue'
-		noTS <- attributes(beaTab)$names != 'TimePeriod'
+		noTS <- attributes(beaTab)$names != TimeIntersect
 		noNotes <- attributes(beaTab)$names != 'NoteRef'
 
 		#A weird fix to push NA values down to bottom for reshaping
@@ -104,7 +116,7 @@ bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 						attributes(beaTab)$names[noDV & noTS & noNotes], 
 						collapse='+'
 					),
-					' ~ variable + TimePeriod)'
+					' ~ variable + ', TimeColName, ')'
 				)
 			)
 		)
@@ -157,13 +169,13 @@ bea2Tab <- function(beaPayload, asWide = TRUE, iTableStyle = TRUE) {
 			colnames(beaNumMatrix) <- beaColHeaders
 
 			beaResults <- data.table(beaNumMatrix)
-			beaResults[, TimePeriod := gsub('DataValue_', 
+			eval(parse(text = paste0("beaResults[, ", TimeColName, " := gsub('DataValue_', 
 				'', attributes(beaTrans)$names[
 					grepl('DataValue_', attributes(beaTrans)$names, fixed = T)
 				], 
 				fixed = TRUE
-			)]	
-			data.table::setkey(beaResults, key = TimePeriod)
+			)];	
+			data.table::setkey(beaResults, key = ", TimeColName, ");")))
 		}
 	}
 	

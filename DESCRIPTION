@@ -1,14 +1,13 @@
-Package: beaR
-Title: R interface to the Bureau of Economic Analysis API
-Version: 1.0.0
-Authors@R: c(person("Andrea", "Julca", role = c("aut", "cre"),
-		     email = c("Andrea.Julca@gmail.com", "Andrea.Julca@bea.gov")),
+Package: bea.R
+Title: Bureau of Economic Analysis API
+Version: 1.0.6
+Authors@R: c(person("Andrea", "Batch", role = c("aut", "cre"),
+		     email = c("Andrea.Julca@bea.gov")),
 				 person("Jeff", "Chen", role = "ctb"),
 				 person("Walt", "Kampas", role = "ctb"))
-Author: Andrea Julca [aut, cre], 
+Author: Andrea Batch [aut, cre], 
 		Jeff Chen [ctb],
 		Walt Kampas [ctb]
-Maintainer: Andrea Julca <Developers@bea.gov>
 Depends:
     R (>= 3.2.1), 
 		data.table
@@ -35,17 +34,18 @@ Imports:
 		colorspace,
 		plyr,
 		yaml
-Description: The beaR package is an R interface for the Bureau of Economic
-    Analysis (BEA) API that serves two core purposes - 
-    1. To Extract/Transform/Load data [beaGet] from the BEA API as R-friendly 
-		formats in the user's workspace [transformation done by default in beaGet 
-		can be modified using optional params; see, too, bea2List, bea2Tab].
-		2. To enable the search of descriptive metadata [beaSearch].
+Description: Provides an R interface for the Bureau of Economic Analysis (BEA) 
+		API (see <http://www.bea.gov/API/bea_web_service_api_user_guide.htm> for 
+		more information) that serves two core purposes - 
+    1. To Extract/Transform/Load data [beaGet()] from the BEA API as R-friendly 
+		formats in the user's work space [transformation done by default in beaGet() 
+		can be modified using optional parameters; see, too, bea2List(), bea2Tab()].
+		2. To enable the search of descriptive meta data [beaSearch()].
 		Other features of the library exist mainly as intermediate methods 
 		or are in early stages of development.
-		Important Note - You must have an API Key to use this library.  
-		Register for a key at http://www.bea.gov/API/signup/index.cfm .
-URL: http://www.bea.gov/API/bea_web_service_api_user_guide.htm
-License: file LICENSE
+		Important Note - You must have an API key to use this library.  
+		Register for a key at <http://www.bea.gov/API/signup/index.cfm> .
+URL: https://github.com/us-bea/bea.R 
+License: CC0
 LazyData: no
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

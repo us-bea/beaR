@@ -17,10 +17,9 @@ beaSearch(searchTerm, beaKey = NULL, asHtml = FALSE)
 An object of class 'data.table' with information about all indexed sets in which the search term was found.
 }
 \description{
-Searches indexed dataset table name, label, and series codes.  CAUTION: Currently only works with NATIONAL datasets (NIPA, NIUnderlyingDetail), temporarily excluding FixedAssets, and REGIONAL datasets (RegionalData, RegionalProduct, RegionalIncome)
+Searches indexed dataset table name, label, and series codes.  CAUTION: Currently only works with NATIONAL datasets (NIPA, NIUnderlyingDetail, FixedAssets), temporarily excluding FixedAssets, and REGIONAL datasets (RegionalProduct, RegionalIncome)
 }
 \examples{
 beaSearch('gross domestic product', asHtml = TRUE)
 }
 \keyword{search}
-

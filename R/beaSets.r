@@ -16,7 +16,7 @@ beaSets <- function(beaKey) {
 	)
 
 	#Set list using beaGet 
-	beaResponse <- beaR::beaGet(beaMetaSpecs, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
+	beaResponse <- bea.R::beaGet(beaMetaSpecs, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
 	
 	return(beaResponse)
 }

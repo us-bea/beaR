@@ -4,7 +4,7 @@
 #' @param beaKey Character string representation of user API key. Necessary for first time use and updates; recommended for anything beyond one-off searches from the console.
 #' @param asHtml Option to return results as DT markup, viewable in browser.  Allows search WITHIN YOUR ALREADY-FILTERED RESULTS ONLY. Requires package 'DT' to be installed.
 #' @keywords search
-#' @description Searches indexed dataset table name, label, and series codes.  CAUTION: Currently only works with NATIONAL datasets (NIPA, NIUnderlyingDetail), temporarily excluding FixedAssets, and REGIONAL datasets (RegionalData, RegionalProduct, RegionalIncome)
+#' @description Searches indexed dataset table name, label, and series codes.  CAUTION: Currently only works with NATIONAL datasets (NIPA, NIUnderlyingDetail, FixedAssets), temporarily excluding FixedAssets, and REGIONAL datasets (RegionalProduct, RegionalIncome)
 #' @return An object of class 'data.table' with information about all indexed sets in which the search term was found.
 #' @import data.table 
 #' @importFrom DT datatable
@@ -36,9 +36,9 @@ is not recommended, as the key is needed to update locally stored metadata.')}
  '.'               <- NULL
  'apiCall'         <- NULL
  'nipaIndex'       <- NULL
- 'fixaIndex'       <- NULL
  'niudIndex'       <- NULL
- 'rdatIndex'       <- NULL
+ 'fixaIndex'       <- NULL
+# 'rdatIndex'       <- NULL
  'rprdIndex'       <- NULL
  'rincIndex'       <- NULL
  'JSONUpdateDate'  <- NULL
@@ -63,12 +63,12 @@ is not recommended, as the key is needed to update locally stored metadata.')}
 	]
 	data.table::setkey(beaMetaMtime, key = Dataset)
 	
-	#Temporarily remove FixedAssets for V1
+	#Add FixedAssets in future, but regionaldata has been merged into regionalproduct and regionalincome on the API
 	beaKnownMetaSets <- list(
 		'nipa',
 		'niunderlyingdetail',
-#		'fixedassets',
-		'regionaldata',
+		'fixedassets',
+#		'regionaldata',
 		'regionalproduct',
 		'regionalincome'
 	)
@@ -101,7 +101,7 @@ is not recommended, as the key is needed to update locally stored metadata.')}
 			'ResultFormat' = 'json'
 		)
 		#Get metadata response with timestamps we need to check for updates as list
-		beaMetaParams <- beaR::beaGet(beaMetaTimeSpec, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
+		beaMetaParams <- bea.R::beaGet(beaMetaTimeSpec, asList = TRUE, asTable = FALSE, isMeta = TRUE)	
 		
 		beaMetaInfo <- data.table::as.data.table(beaMetaParams$ParamValue)
 		
@@ -154,220 +154,223 @@ is not recommended, as the key is needed to update locally stored metadata.')}
 
 	beaMetaFiles <- list.files(path = beaMetadataStore, full.names = TRUE);
 
-#Temporarily remove FixedAssets from V1
+	missingNat <- FALSE;
+	missingReg <- FALSE;
+	
+#Remove RegionalData, but add FixedAssets later
 	if(
-#		length(grep('FixedAssets', beaMetaFiles, fixed = TRUE)) == 0 | 
+		length(grep('FixedAssets', beaMetaFiles, fixed = TRUE)) == 0 | 
 		length(grep('NIPA', beaMetaFiles, fixed = TRUE)) == 0 | 
-		length(grep('NIUnderlyingDetail', beaMetaFiles, fixed = TRUE)) == 0 | 
-		length(grep('RegionalData', beaMetaFiles, fixed = TRUE)) == 0 | 
+		length(grep('NIUnderlyingDetail', beaMetaFiles, fixed = TRUE)) == 0  
+	){
+		warning(paste0('National metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; searching regional metadata only.'))
+		missingNat <- TRUE;
+	}
+	
+	
+	if(
+#		length(grep('RegionalData', beaMetaFiles, fixed = TRUE)) == 0 | 
 		length(grep('RegionalProduct', beaMetaFiles, fixed = TRUE)) == 0 | 
 		length(grep('RegionalIncome', beaMetaFiles, fixed = TRUE)) == 0 
 	){
-			warning(paste0('Metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; please try beaSearch again later.'))
-			return(paste0('Metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; please try beaSearch again later.'))
+			warning(paste0('Regional metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; searching national metadata only.'))
+			missingReg <- TRUE;
+#			return(paste0('Metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; please try beaSearch again later.'))
+	} 
+	
+	if(missingNat && missingReg){
+		message(paste0('Metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; please try beaSearch again later.'))	
+		return(paste0('Metadata is missing from ',beaMetadataStore,' and may be locked for updating on the BEA API; please try beaSearch again later.'))	
 	} else {
-#Temporarily remove FixedAssets from V1
+#Remove RegionalData permanently, but add FixedAssets later
 	try({
-#		load(paste0(beaMetadataStore, '/FixedAssets.RData'))
-		load(paste0(beaMetadataStore, '/NIPA.RData'))
-		load(paste0(beaMetadataStore, '/NIUnderlyingDetail.RData'))
-		load(paste0(beaMetadataStore, '/RegionalData.RData'))
-		load(paste0(beaMetadataStore, '/RegionalProduct.RData'))
-		load(paste0(beaMetadataStore, '/RegionalIncome.RData'))
-	
+		if(!missingNat){
+			load(paste0(beaMetadataStore, '/FixedAssets.RData'))
+			load(paste0(beaMetadataStore, '/NIPA.RData'))
+			load(paste0(beaMetadataStore, '/NIUnderlyingDetail.RData'))
+			#Remove RegionalData, add FixedAssets later (fixaIndex)
+			nationalIndex <- rbindlist(list(nipaIndex, niudIndex, fixaIndex), use.names = TRUE, fill=F)
+			nationalIndex[, Account := 'National']
+			data.table::setkey(nationalIndex, key = DatasetName, TableID, LineNumber)
+
+		#Search national economic accounts for term 
+			nPerfectMatch <- nationalIndex[
+				grep(
+					tolower(searchTerm), 
+					tolower(
+						paste(
+							LineDescription, 
+							TableName, 
+							SeriesCode, 
+							DatasetName
+						)
+					), fixed=TRUE
+				)
+			]
 		
-		#Temporarily remove FixedAssets from V1
-#		nationalIndex <- rbindlist(list(nipaIndex, niudIndex, fixaIndex), use.names = TRUE, fill=F)
-		nationalIndex <- rbindlist(list(nipaIndex, niudIndex), use.names = TRUE, fill=F)
-		nationalIndex[, Account := 'National']
-		data.table::setkey(nationalIndex, key = DatasetName, TableID, LineNumber)
+		#	nPerfectMatch[ ,
+		#		Parameter := NA
+		#	]
+		#	nPerfectMatch[ ,
+		#		Key := NA
+		#	]
+			
+			nPerfectMatch[,
+				apiCall := 
+					paste0(
+						"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
+						DatasetName, 
+						"', 'TableName' = '", 
+						TableID, 
+						"', ...))"
+					)
+			]
+			
 		
-		regionalIndex <- rbindlist(list(rdatIndex, rprdIndex, rincIndex), use.names = TRUE, fill=F)
-		try(regionalIndex[, Account := 'Regional'])
-		data.table::setkey(regionalIndex, key = DatasetName, Parameter, Key)
-	
-	
-	#Search national economic accounts for term 
-		nPerfectMatch <- nationalIndex[
-			grep(
-				tolower(searchTerm), 
-				tolower(
+			nReasonableMatch <- nationalIndex[
+				grep(
+					searchTerm, 
 					paste(
 						LineDescription, 
 						TableName, 
 						SeriesCode, 
 						DatasetName
+					), ignore.case=TRUE
+				)
+			]
+		
+		#	nReasonableMatch[ ,
+		#		Parameter := NA
+		#	]
+		#	nReasonableMatch[ ,
+		#		Key := NA
+		#	]
+			
+			nReasonableMatch[,
+				apiCall := 
+					paste0(
+						"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
+						DatasetName, 
+						"', 'TableName' = '", 
+						TableID, 
+						"', ...))"
 					)
-				), fixed=TRUE
-			)
-		]
-	
-	#	nPerfectMatch[ ,
-	#		Parameter := NA
-	#	]
-	#	nPerfectMatch[ ,
-	#		Key := NA
-	#	]
+			]
+			
+		#FixedAssets is different from NIPA and NIUnderlyingDetail; handler here
+		nPerfectMatch[tolower(DatasetName) == 'fixedassets', apiCall := gsub("', 'TableName' = '", "', 'TableID' = '", apiCall, fixed = T)]
+		nReasonableMatch[tolower(DatasetName) == 'fixedassets', apiCall := gsub("', 'TableName' = '", "', 'TableID' = '", apiCall, fixed = T)]
+			
+			
+			
+		}
 		
-		nPerfectMatch[,
-			apiCall := 
-				paste0(
-					"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
-					DatasetName, 
-					"', 'TableID' = '", 
-					TableID, 
-					"', ...))"
+		if(!missingReg){
+			load(paste0(beaMetadataStore, '/RegionalProduct.RData'))
+			load(paste0(beaMetadataStore, '/RegionalIncome.RData'))
+			#		load(paste0(beaMetadataStore, '/RegionalData.RData'))
+
+			#Removed rdatIndex, which was used for RegionalData
+			regionalIndex <- rbindlist(list(rprdIndex, rincIndex), use.names = TRUE, fill=F)
+			try(regionalIndex[, Account := 'Regional'])
+			data.table::setkey(regionalIndex, key = DatasetName, Parameter, Key)
+		
+		
+			#Search regional accounts for the term
+			rPerfectMatch <- regionalIndex[
+				grep(
+					tolower(searchTerm), 
+					tolower(
+						paste(
+							Desc, 
+							Key, 
+							DatasetName
+						)
+					), fixed=TRUE
 				)
-		]
+			]
 		
-	
-		nReasonableMatch <- nationalIndex[
-			grep(
-				searchTerm, 
-				paste(
-					LineDescription, 
-					TableName, 
-					SeriesCode, 
-					DatasetName
-				), ignore.case=TRUE
-			)
-		]
-	
-	#	nReasonableMatch[ ,
-	#		Parameter := NA
-	#	]
-	#	nReasonableMatch[ ,
-	#		Key := NA
-	#	]
+		#	rPerfectMatch[ ,
+		#		TableID := NA
+		#	]
+		#	rPerfectMatch[ ,
+		#		LineNumber := NA
+		#	]
+		#	rPerfectMatch[ ,
+		#		SeriesCode := NA
+		#	]
+		#	rPerfectMatch[ ,
+		#		LineDescription := NA
+		#	]
+		#	rPerfectMatch[ ,
+		#		tier := NA
+		#	]
+		#	rPerfectMatch[ ,
+		#		rootTabLine := NA
+		#	]
+			
+				
+			rPerfectMatch[,
+				apiCall := 
+					paste0(
+						"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
+						DatasetName, 
+						"', '", 
+						Parameter, 
+						"' = '", 
+						Key, 
+						"', ...))"
+					)
+			]
+			
 		
-		nReasonableMatch[,
-			apiCall := 
-				paste0(
-					"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
-					DatasetName, 
-					"', 'TableID' = '", 
-					TableID, 
-					"', ...))"
-				)
-		]
 		
-	
-		#Search regional accounts for the term
-		rPerfectMatch <- regionalIndex[
-			grep(
-				tolower(searchTerm), 
-				tolower(
+			rReasonableMatch <- regionalIndex[
+				grep(
+					searchTerm, 
 					paste(
 						Desc, 
 						Key, 
 						DatasetName
+					), ignore.case=TRUE
+				)
+			]
+		
+		#	rReasonableMatch[ ,
+		#		TableID := NA
+		#	]
+		#	rReasonableMatch[ ,
+		#		LineNumber := NA
+		#	]
+		#	rReasonableMatch[ ,
+		#		SeriesCode := NA
+		#	]
+		#	rReasonableMatch[ ,
+		#		LineDescription := NA
+		#	]
+		#	rReasonableMatch[ ,
+		#		tier := NA
+		#	]
+		#	rReasonableMatch[ ,
+		#		rootTabLine := NA
+		#	]
+		
+			rReasonableMatch[,
+				apiCall := 
+					paste0(
+						"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
+						DatasetName, 
+						"', '", 
+						Parameter, 
+						"' = '", 
+						Key, 
+						"', ...))"
 					)
-				), fixed=TRUE
-			)
-		]
-	
-	#	rPerfectMatch[ ,
-	#		TableID := NA
-	#	]
-	#	rPerfectMatch[ ,
-	#		LineNumber := NA
-	#	]
-	#	rPerfectMatch[ ,
-	#		SeriesCode := NA
-	#	]
-	#	rPerfectMatch[ ,
-	#		LineDescription := NA
-	#	]
-	#	rPerfectMatch[ ,
-	#		tier := NA
-	#	]
-	#	rPerfectMatch[ ,
-	#		rootTabLine := NA
-	#	]
-		
-			
-		rPerfectMatch[,
-			apiCall := 
-				paste0(
-					"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
-					DatasetName, 
-					"', '", 
-					Parameter, 
-					"' = '", 
-					Key, 
-					"', ...))"
-				)
-		]
-		
-	
-	
-		rReasonableMatch <- regionalIndex[
-			grep(
-				searchTerm, 
-				paste(
-					Desc, 
-					Key, 
-					DatasetName
-				), ignore.case=TRUE
-			)
-		]
-	
-	#	rReasonableMatch[ ,
-	#		TableID := NA
-	#	]
-	#	rReasonableMatch[ ,
-	#		LineNumber := NA
-	#	]
-	#	rReasonableMatch[ ,
-	#		SeriesCode := NA
-	#	]
-	#	rReasonableMatch[ ,
-	#		LineDescription := NA
-	#	]
-	#	rReasonableMatch[ ,
-	#		tier := NA
-	#	]
-	#	rReasonableMatch[ ,
-	#		rootTabLine := NA
-	#	]
-	
-		rReasonableMatch[,
-			apiCall := 
-				paste0(
-					"beaGet(list('UserID' = '[your_key]', 'Method' = 'GetData', 'DatasetName' = '",
-					DatasetName, 
-					"', '", 
-					Parameter, 
-					"' = '", 
-					Key, 
-					"', ...))"
-				)
-		]
-		
-		
-		if(requireNamespace('DT', quietly = TRUE) && asHtml == TRUE){
-			requireNamespace('DT', quietly = TRUE)
-			searchMatch <- DT::datatable(unique(
-				rbindlist(
-					list(
-	#					nPerfectMatch[, .(apiCall, datasetName, TableID, Description, paramType, Key, LineNumber, SeriesCode, LineDescription)], 
-	#					rPerfectMatch[, .(apiCall, datasetName, TableID, Description, paramType, Key, LineNumber, SeriesCode, LineDescription)], 
-	#					nReasonableMatch[, .(apiCall, datasetName, TableID, Description, paramType, Key, LineNumber, SeriesCode, LineDescription)],  
-	#					rReasonableMatch[, .(apiCall, datasetName, TableID, Description, paramType, Key, LineNumber, SeriesCode, LineDescription)]
-						nPerfectMatch,
-						rPerfectMatch,
-						nReasonableMatch,
-						rReasonableMatch
-					),
-					use.names = TRUE,
-					fill = TRUE
-				)
-			))
-		}
-		else{
-			if (asHtml == TRUE){
-				message('Note: Returning as data.table.  You must have package DT installed to return browser-viewable table.')
+			]
 			}
+
+	#TODO: figure out how to sort list by var name s.t. it concatenates lazily instead of this if-then stuff
+		if(!(missingNat) && !(missingReg)){
 			searchMatch <- unique(
 				rbindlist(
 					list(
@@ -384,6 +387,42 @@ is not recommended, as the key is needed to update locally stored metadata.')}
 					fill = TRUE
 				)
 			)
+		}
+		
+		if(missingNat && !(missingReg)){
+			searchMatch <- unique(
+				rbindlist(
+					list(
+						rPerfectMatch,
+						rReasonableMatch
+					),
+					use.names = TRUE,
+					fill = TRUE
+				)
+			)
+		}
+		
+		if(!(missingNat) && missingReg){
+			searchMatch <- unique(
+				rbindlist(
+					list(
+						nPerfectMatch,
+						nReasonableMatch
+					),
+					use.names = TRUE,
+					fill = TRUE
+				)
+			)
+		}
+		
+		if(requireNamespace('DT', quietly = TRUE) && asHtml == TRUE){
+			requireNamespace('DT', quietly = TRUE)
+			searchMatch <- DT::datatable(searchMatch)
+		}
+		else{
+			if (asHtml == TRUE){
+				message('Note: Returning as data.table.  You must have package DT installed to return browser-viewable table.')
+			}
 		}
 		return(searchMatch)
 	})

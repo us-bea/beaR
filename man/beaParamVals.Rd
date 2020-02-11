@@ -23,4 +23,3 @@ Gives list of values possible for a given dataset's parameters
 beaParamVals('yourAPIkey', 'RegionalData', 'keycode')
 }
 \keyword{metadata}
-
